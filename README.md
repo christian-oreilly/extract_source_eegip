@@ -194,6 +194,13 @@ pip install git+https://github.com/mne-tools/mne-python.git@refs/pull/8869/merge
 # Get a config file... I'll use it as-is because its default parameters are reasonable 
 ./extract_source_eegip.py  --get_example_config
 
+# Get the head models... The source extraction routine would download
+# them automatically if they have not already been downloaded, but since
+# the source extraction will be performed on a compute node which have 
+# no internet access, it needs to be explicitly downloaded before
+# getting on the compute note. 
+./extract_source_eegip.py --get_head_models
+
 # Create an interactive job. Could be done through 
 # srun or sbatch but I want to monitor this task as it runs...
 salloc --time=12:0:0  --mem-per-cpu=10G --account=def-emayada
