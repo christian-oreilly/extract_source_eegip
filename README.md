@@ -174,3 +174,38 @@ output:
 
 And, if you insist to suffer, these file should also be manageable in [Matlab](https://www.mathworks.com/help/matlab/ref/ncread.html).
 
+## Using this on Beluga
+
+```bash
+wget https://raw.githubusercontent.com/christian-oreilly/extract_source_eegip/master/extract_source_eegip.py
+
+# Load python...
+module load python/3.7 qt/5.12.3 vtk/8.1.1
+
+# You should work in a virtual environement when working with python...
+# Here I used my "env_mayada" virtual environement but you'll have to
+# create one (google python virtual environement if not familiar) if
+# you don't have one
+source env_mayada/bin/activate
+
+# Install the MNE PR
+pip install git+https://github.com/mne-tools/mne-python.git@refs/pull/8869/merge
+
+# Get a config file... I'll use it as-is because its default parameters are reasonable 
+./extract_source_eegip.py  --get_example_config
+
+# Create an interactive job. Could be done through 
+# srun or sbatch but I want to monitor this task as it runs...
+salloc --time=12:0:0  --mem-per-cpu=10G --account=def-emayada
+
+# Source the virtual environment again since we are now on a computing node...
+source env_mayada/bin/activate
+
+./extract_source_eegip.py  --derivatives_name "sources"
+
+# I don't need the downloaded json config file anymore...
+rm config.json
+
+# I we don't want to keep the head models...
+rm -r fs_models
+```
