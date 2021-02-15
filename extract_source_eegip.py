@@ -381,10 +381,7 @@ def compute_sources(config_path, derivatives_name, overwrite=False):
                                                  "region": [label.name for label in anat_label],
                                                  "time": epochs.times})
                 sources_xr.to_netcdf(out_path)
-                break
-            break
-        break
-
+                
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Extract sources for EEG-IP.')
