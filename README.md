@@ -14,7 +14,7 @@ chmod u+x extract_source_eegip.py
 
 You can now get and example of configuration file that specify the various source estimation parameters:
 ```
-./extract_source_eegip.py  --get_example_config "config.json"
+./extract_source_eegip.py  --get_example_config
 ```
 
 To have a look at this file...
