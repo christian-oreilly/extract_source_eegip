@@ -239,17 +239,21 @@ def process_sources(epochs, trans, surface_src, bem_solution, template, config):
     return label_ts, anat_label
 
 
-def validate_models(config_path):
+def get_head_models(config_path):
     with Path(config_path).open('r') as f:
         config = json.load(f)
 
     for key in config["global"]:
         globals()[key] = config["global"][key]
 
-
     for template, age in template_ages.items():
         mne.datasets.fetch_infant_template(age, subjects_dir=subjects_dir)
 
+
+def validate_models(config_path):
+    get_head_models(config_path)
+
+    for template, age in template_ages.items():
         montage, trans, bem_model, bem_solution, surface_src = get_bem_artifacts(template)
         montage.ch_names = ["E" + str(int(ch_name[3:])) for ch_name in montage.ch_names]
         montage.ch_names[128] = "Cz"
@@ -325,14 +329,11 @@ def save_config_example(config_path):
 
 
 def compute_sources(config_path, derivatives_name, overwrite=False):
+    
+    get_head_models(config_path)
+
     with Path(config_path).open('r') as f:
         config = json.load(f)
-
-    for key in config["global"]:
-        globals()[key] = config["global"][key]
-
-    for template, age in template_ages.items():
-        mne.datasets.fetch_infant_template(age, subjects_dir=subjects_dir)
 
     for dataset in sites:
         # Save a copy of the configuration file at the root of the derivatives.
@@ -394,6 +395,9 @@ if __name__ == "__main__":
     parser.add_argument('--validate_head_models', dest='validate', action='store_true',
                         help='Generate validation images for the head models.')
 
+    parser.add_argument('--get_head_models', dest='get_head_models', action='store_true',
+                        help='Download the head models.')
+
     parser.add_argument('--derivatives_name', dest='derivatives_name', default="sources",
                         help='Name of the derivative where to save the sources.')
 
@@ -419,5 +423,7 @@ if __name__ == "__main__":
         validate_models(args.config_path)
     elif args.get_example_config:
         save_config_example(args.config_path)
+    elif args.get_head_models:
+        get_head_models(args.config_path)
     else:
         compute_sources(args.config_path, args.derivatives_name, args.overwrite)
