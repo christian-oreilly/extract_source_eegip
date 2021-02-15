@@ -216,3 +216,11 @@ rm config.json
 # I we don't want to keep the head models...
 rm -r fs_models
 ```
+
+
+## Using precomputed sources
+
+Precomputed sources are available on Beluga as the following derivatives:
+```
+/project/def-emayada/eegip/[site]/derivatives/lossless/derivatives/sources/
+```
