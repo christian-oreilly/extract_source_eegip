@@ -401,17 +401,17 @@ if __name__ == "__main__":
                         help='Name of the derivative where to save the sources.')
 
     parser.add_argument('--bids_root', dest='out_root_path', default='/project/def-emayada/eegip',
-                        help='Root of the BIDS project.')
+                        help='Root of the BIDS project (default value: /project/def-emayada/eegip).')
 
     parser.add_argument('--config_path', dest='config_path', default="config.json",
-                        help='Path to the configuration file.')
+                        help='Path to the configuration file (default: config.json).')
 
     parser.add_argument('--overwrite', dest='overwrite', action="store_true",
                         help='Overwrite the output derivatives if it already exists.')
 
-    parser.add_argument('--fs_subjects_dir', dest='subjects_dir', default="./fs_models/",
+    parser.add_argument('--fs_subjects_dir', dest='subjects_dir', default="fs_models/",
                         help=('Directory where the head templates can be found. If they corresponding templates are '
-                              'absent, they will be downloaded in that directory.'))
+                              'absent, they will be downloaded in that directory (default: fs_models/).'))
 
     args = parser.parse_args()
 
