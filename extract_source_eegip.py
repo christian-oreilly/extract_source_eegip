@@ -154,7 +154,7 @@ def process_events_london(raw, age):
             annot_sample.append(np.arange(int(annot["onset"] * freq),
                                           int(next_annot["onset"] * freq),
                                           int(tmax * freq)))
-            annot_id.extend(event_id[("london", age)][annot["description"]] * np.ones(len(annot_sample[-1])))
+            annot_id.extend(event_id["london"][age][annot["description"]] * np.ones(len(annot_sample[-1])))
 
         annot_sample = np.concatenate(annot_sample)
 
@@ -328,8 +328,8 @@ def save_config_example(config_path):
         json.dump(config, f, indent=4)
 
 
-def compute_sources(config_path, derivatives_name, overwrite=False):
-    
+def compute_sources(config_path, derivatives_name, overwrite=False, resume=False):
+
     get_head_models(config_path)
 
     with Path(config_path).open('r') as f:
@@ -339,14 +339,14 @@ def compute_sources(config_path, derivatives_name, overwrite=False):
         # Save a copy of the configuration file at the root of the derivatives.
         derivatives_root_in = bids_root / dataset / "derivatives" / "lossless"
         derivatives_root_out = derivatives_root_in / "derivatives" / derivatives_name
-        if derivatives_root_out.exists():
+        if derivatives_root_out.exists() and not resume:
             if overwrite:
                 rmtree(derivatives_root_out)
             else:
                 raise RuntimeError(f"The derivatives {derivatives_root_out} already exists. You can call the program "
                                    f"using --overwrite if you are sure you want to overwrite the current "
-                                   f"data at this path.")
-
+                                   f"data at this path. You can also call it with --resume to resume an extraction "
+                                   f"stopped midway.")
 
         derivatives_root_out.mkdir(parents=True, exist_ok=True)
         with (derivatives_root_out / "config.json").open('w') as f:
@@ -362,9 +362,17 @@ def compute_sources(config_path, derivatives_name, overwrite=False):
             montage.ch_names[128] = "Cz"
             file_pattern = f"sub-s*/ses-m{age}/eeg/sub-*_eeg_qcr.set"
             for path in tqdm(list(derivatives_root_in.glob(file_pattern))):
+                subject_no = Path(path).name[5:8]
+                source_file_name = path.name[:-4] + "_source_labels.nc"
+                out_path = derivatives_root_out / f"sub-s{subject_no}" / f"ses-m{age}" / "eeg" / source_file_name
+                if out_path.exists():
+                    if resume:
+                        continue
+                    else:
+                        raise RuntimeError("Trying to overwrite an existing source file.")
+
                 raw = preprocessed_raw(path, line_freqs[dataset], montage, rename_channel=False)
                 raw.set_montage(montage)
-                subject_no = Path(path).name[5:8]
 
                 events = process_events(raw, dataset, age)
                 if events is None:
@@ -372,9 +380,6 @@ def compute_sources(config_path, derivatives_name, overwrite=False):
                 epochs = process_epochs(raw, dataset, age, events)
 
                 label_ts, anat_label = process_sources(epochs, trans, surface_src, bem_solution, template, config)
-
-                source_file_name = path.name[:-4] + "_source_labels.nc"
-                out_path = derivatives_root_out / f"sub-s{subject_no}" / f"ses-m{age}" / "eeg" / source_file_name
                 out_path.parent.mkdir(exist_ok=True, parents=True)
                 sources_xr = xr.DataArray(np.array(label_ts),
                                          dims=("epoch", "region", "time"),
@@ -410,6 +415,9 @@ if __name__ == "__main__":
     parser.add_argument('--overwrite', dest='overwrite', action="store_true",
                         help='Overwrite the output derivatives if it already exists.')
 
+    parser.add_argument('--resume', dest='resume', action="store_true",
+                        help='Resume the output derivatives if it a derivatives with the same name exists.')
+
     parser.add_argument('--fs_subjects_dir', dest='subjects_dir', default="fs_models/",
                         help=('Directory where the head templates can be found. If they corresponding templates are '
                               'absent, they will be downloaded in that directory (default: fs_models/).'))
@@ -426,4 +434,4 @@ if __name__ == "__main__":
     elif args.get_head_models:
         get_head_models(args.config_path)
     else:
-        compute_sources(args.config_path, args.derivatives_name, args.overwrite)
+        compute_sources(args.config_path, args.derivatives_name, args.overwrite, args.resume)
