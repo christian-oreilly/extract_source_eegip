@@ -4,7 +4,7 @@
 
 First download the script:
 ```
-https://raw.githubusercontent.com/christian-oreilly/extract_source_eegip/master/extract_source_eegip.py
+wget https://raw.githubusercontent.com/christian-oreilly/extract_source_eegip/master/extract_source_eegip.py
 ```
 
 Change its permissions so that it can be execute:
